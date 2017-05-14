@@ -63,14 +63,15 @@
       // parameter when you first load the API. For example:
       // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
      var map, heatmap,heatmapData,animation,heatmapDataOrigin,playing=false,origin=true;
-   
+     var values; 
+           var tmp=0;
       function play(){
            if(playing)
              return;
            playing=true;
            function animate(){
               for (var i=0,len=heatmapData.length;i<len;i++)
-                  heatmapData[i]=new google.maps.LatLng(heatmapData[i].lat()+0.0005,heatmapData[i].lng()+0.001);
+                  heatmapData[i]={location:new google.maps.LatLng(heatmapData[i].location.lat()+0.0005,heatmapData[i].location.lng()+0.001),weight:heatmapData[i].weight};
                //point.longitude=point.longitude+0.000001;
               console.log("updated");
            //heatmap.setMap(null);
@@ -598,29 +599,75 @@
  
            
         
-           var tmp=0;
-           var xhttp = new XMLHttpRequest();
-          xhttp.onreadystatechange = function() {
+           var xhttp1 = new XMLHttpRequest();
+          xhttp1.onreadystatechange = function() {
          if (this.readyState == 4 && this.status == 200) {
        // Typical action to be performed when the document is ready:
-                document.getElementById("demo").innerHTML += xhttp.responseText+"<br>";
-                if(tmp==0)
-                   tmp=xhttp.responseText;
+                tmp=xhttp1.responseText;
+                xhttp2 = new XMLHttpRequest();
+          xhttp2.onreadystatechange = function() {
+         if (this.readyState == 4 && this.status == 200) {
+       // Typical action to be performed when the document is ready:
+               var xhttp3 = new XMLHttpRequest();
+               xhttp3.onreadystatechange=function() {
+                  if(this.readyState == 4 && this.status == 200) {
+                         values= xhttp3.responseText;
+                         values=values.split(/,| |\n/); 
+                         document.getElementById("demo").innerHTML += values;
+                         heatmapData=[];
+                         for(var i=1;i<values.length/3-1;i++){
+                           var x= parseFloat(values[3*i].substring(1));
+                           var y= parseFloat(values[3*i+1].substring(0,values[3*i+1].length-1));
+                           var value= parseFloat(values[3*i+2]);
+                           if(value>=0)
+                              {
+                                 x=(x-3500)/3500*180;
+                                 y=(y-1750)/1750*90;
+                                 heatmapData.push({location:new google.maps.LatLng(y,x),weight:parseFloat(value)});  
+                              } 
+                         
+                          }
+                         heatmap = new google.maps.visualization.HeatmapLayer({
+                        data: getPoints(),
+                       map: map
+                       });
+                       
+                         xhttp4 = new XMLHttpRequest();
+                         xhttp4.onreadystatechange= function(){
+                            if(this.readyState == 4 && this.status==200){
+                                    console.info("session closed");
+                                  }
+
+                             };
+                       xhttp4.open("GET", "http://jaguar.unl.edu:8080/release_session?id="+tmp, true);
+                       xhttp4.send();
+
+                   } 
+ 
+               };
+  
+                         xhttp3.open("GET", "http://jaguar.unl.edu:8080/read_lines?id="+tmp+"&n=1000000", true);
+                         xhttp3.send();
+
+     }
+         };
+            
+
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,t,1000),x%20=0 and y%20=0)&save=dcsv"), true);
+
+                xhttp2.send();
+ 
+
+
             }
          };
-          xhttp.open("GET", "http://localhost:9000/new_session", true);
-          xhttp.send();
+          xhttp1.open("GET", "http://jaguar.unl.edu:8080/new_session", true);
+          xhttp1.send();
 
-          xhttp.open("GET", "http://localhost:9000/execute_query?id="+tmp+"&query=filter(slice(NMQ_PRECIP,z,0,t,500),x/10=0 and y/10=0)&save=dcsv", true);
-          xhttp.send();
+         
+ 
 
-          xhttp.open("GET", "http://localhost:9000/read_lines?id="+tmp+"&n=1000000", true);
-          xhttp.send();
-
-          xhttp.open("GET", "http://localhost:9000/release_session?id="+tmp, true);
-          xhttp.send();
-
-
+          
 
 
 
@@ -628,15 +675,11 @@
 
            heatmapDataOrigin = jQuery.extend(true, [], heatmapData);
           map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 13,
+          zoom: 1,
           center: {lat: 37.775, lng: -122.434},
           mapTypeId: 'satellite'
         });
-        heatmap = new google.maps.visualization.HeatmapLayer({
-          data: getPoints(),
-          map: map
-        });
-      }
+             }
       function toggleHeatmap() {
         heatmap.setMap(heatmap.getMap() ? null : map);
       }
@@ -660,7 +703,7 @@
         heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
       }
       function changeRadius() {
-        heatmap.set('radius', heatmap.get('radius') ? null : 20);
+        heatmap.set('radius', heatmap.get('radius') ? null : 30);
       }
       function changeOpacity() {
         heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
