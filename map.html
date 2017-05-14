@@ -53,6 +53,7 @@
       <button onclick="changeOpacity()">Change opacity</button>
       <button onclick="play()">Play</button>
       <button onclick="pause()">Pause</button>
+      <button onclick="stop()">Stop</button>
     </div>
     <div id="map"></div>
     <div id="timeseries"></div>
@@ -62,17 +63,19 @@
       // parameter when you first load the API. For example:
       // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
 
-
+     var map, heatmap,heatmapData,animation,heatmapDataOrigin,playing=false,origin=true;
    
       function play(){
-
+           if(playing)
+             return;
+           playing=true;
            function animate(){
               for (var i=0,len=heatmapData.length;i<len;i++)
                   heatmapData[i]=new google.maps.LatLng(heatmapData[i].lat()+0.0005,heatmapData[i].lng()+0.001);
                //point.longitude=point.longitude+0.000001;
               console.log("updated");
            //heatmap.setMap(null);
-              heatmap.setData(heatmapData);
+                heatmap.setData(heatmapData);
               animation=setTimeout(animate, 100);
            }
            
@@ -81,11 +84,17 @@
       }
 
       function pause(){
-
+          playing=false;
          clearTimeout(animation);
       }
 
-      var map, heatmap,heatmapData,animation;
+      function stop(){
+         playing=false;
+         clearTimeout(animation);
+         heatmap.setData(heatmapDataOrigin);
+        heatmapData= jQuery.extend(true, [], heatmapDataOrigin);
+ }
+    
 
 
       function initMap() {
@@ -593,7 +602,7 @@
           new google.maps.LatLng(37.752986, -122.403112),
           new google.maps.LatLng(37.751266, -122.403355)
         ];
-
+           heatmapDataOrigin = jQuery.extend(true, [], heatmapData);
           map = new google.maps.Map(document.getElementById('map'), {
           zoom: 13,
           center: {lat: 37.775, lng: -122.434},
@@ -651,8 +660,8 @@
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU1RvtD5YF8-dwMmCIYP8ds-6Np5QVHFY&libraries=visualization&callback=initMap">
     </script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    
   </body>
 </html>
-
-
 
