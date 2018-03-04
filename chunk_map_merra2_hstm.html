@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Heatmaps</title>
+    <link href="css/c3.min.css" rel="stylesheet" type="text/css">
+   
+
+
+     <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+        position: relative;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+       // width: 90%;
+        height: 100%;
+        margin: auto;
+        //padding-bottom: 10%;
+        position: relative;
+      }
+      #mcontainer{
+       height:100%;
+       position: relative;
+       
+      }
+      #floating-panel {
+        opacity: 0.3;
+        position: absolute;
+        //top:90%;
+        //height:34px;
+         bottom :10px;
+        left: 25%;
+        width:50%;
+        z-index: 5;
+        //opacity:0.6;
+       // background-color: #fff;
+        background-color: rgba(255,255,255,0);
+        padding: 5px;
+       // border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      #floating-panel:hover{
+        opacity: 1;
+        
+      }
+      #pcontainer:hover #progressbar_handle{
+         opacity:1;
+
+     }
+     #pcontainer #progressbar_handle{
+ 
+      transition: opacity 1s;
+     }
+      #floating-panel button{
+        float:left;
+       }
+      #floating-panel {
+        //background-color: #fff;
+        //border: 1px solid #999;
+        //left: 25%;
+        transition:opacity 2s;
+        padding: 5px;
+        //position: absolute;
+        //top: 10px;
+        z-index: 5;
+      }
+      #timeseries{
+        height:100%;
+        //background-color: blue;
+      }
+      #dashboard{
+       position: absolute;
+       width: 21%;
+       height:15%;
+       right:0;
+       top:0;
+       background-color: white;
+       z-index:5; 
+       padding: 1% 2%;
+    
+       border: 2px solid grey;
+      }
+     #tcontainer{
+      position: absolute;
+      right:0px;
+      top:0px;
+      width: 20%;
+      height: 300px;
+      opacity:0.5;
+      background-color:white;
+      padding: 2%;
+     // height:20%;
+      border: 3px solid grey;
+      transition: opacity 1.5s;
+     }
+     #tcontainer:hover{
+       opacity:  1;
+
+     }
+ 
+     #tcontainer svg{
+     //  height: 100% !important;
+       
+     
+     }
+    #tcontainer g{
+
+     //   height: 100% !important;
+     }
+     #colormaps{
+      position: absolute;
+      right:0px;
+      top:310px;
+      height:80px;
+      width:20%;
+      z-index:5;
+      background-color:rgba(255,255,255,0);
+      //padding: 20px;
+    //  opacity:0.5; 
+     }  
+    #colormap1{
+      height: 20px;
+      background: linear-gradient(to right, rgba(0, 255, 0, 0),
+          rgba(0, 220, 2,1),
+          rgba(0, 191, 2, 1),
+          rgba(0, 127, 2, 1),
+          rgba(0, 63, 255, 1),
+          rgba(0, 0, 255, 1),
+          rgba(0, 0, 223, 1),
+          rgba(0, 0, 191, 1),
+          rgba(0, 0, 159, 1),
+          rgba(0, 0, 127, 1),
+          rgba(63, 0, 91, 1),
+          rgba(127, 0, 63, 1)
+
+
+       );
+    // margin-top: 10px;
+     margin-right:10px;
+    }
+     #colormap2{
+     // z-index:6;
+      height: 20px;
+      background: linear-gradient(to right, rgba(255, 255, 0, 0),
+          rgba(180, 220, 2,1),
+          rgba(190, 200, 2, 1),
+          rgba(200, 180, 2, 1),
+          rgba(210, 160, 0, 1),
+          rgba(220, 140, 0, 1),
+          rgba(230, 120, 0, 1),
+          rgba(240, 100, 0, 1),
+          rgba(250, 80, 0, 1),
+          rgba(255, 40, 0, 1),
+          rgba(255, 20, 0, 1),
+          rgba(255, 0, 0, 1));
+      
+  //   margin-top: 10px;
+    margin-right:10px;
+    }
+    #colormaps .colormap_legend{
+      text-align: center;
+      font-weight:bold;
+      color: rgb(50,50,0);
+    } 
+
+
+      
+     #download{
+      position:absolute;
+      z-index:5;
+      right: 50px;
+      top :20px;
+      width:15%;
+      
+     }
+     #histogram_button{
+      position:absolute;
+      z-index:5;
+      right: 50px;
+      top: 60px;
+      width:15%;
+     // display:none;
+
+      } 
+     #histogram{
+      display:none;
+      height:100%; 
+     }     
+     #pcontainer{
+     //  display:inline;
+       float: left;
+       width:65%;
+       height:34px;
+     // padding-left:20px;
+       position:relative;
+     }
+    #progress-bar{
+    height:34px;
+    background-color:rgb(6, 54, 132);
+
+    }
+    #progressbar_handle{
+      position:absolute;
+      height:44px;
+      width:20px;
+      background-color:rgb(2, 90, 232);
+      top:-5px;
+      left:0px;
+      border: 4px solid;
+      border-style: outset;
+      opacity: 0;
+     // display:none;
+     // transition: display 1.5s;
+     }
+      #timedisplay{
+        width:120px;   
+       height:34px; 
+       float:left;
+       font-size:0.8em;
+       font-weight:bold;
+       letter-spacing:2px;
+       text-align:center;
+       line-height:1.1;
+       padding:5px;
+     }
+     @media screen and (max-width: 1700px){
+       #floating-panel{
+           width: 60%; 
+           left:20%;  
+       }
+      #pcontainer{
+       width:50%;
+       }
+       #tcontainer{
+            width: 25%;
+        }
+      #download{
+        width: 15%;
+     }      
+      #colormaps{
+        width:25%;
+     }  
+
+     }
+     @media screen and (max-width: 960px){
+        #floating-panel{
+           width: 84%;
+           left:  8%;
+           
+        } 
+        #pcontainer{
+           width: 45%;  
+       }
+       
+     }
+     
+     #query{
+       width: 20%;
+      display:block;   
+      position:absolute; 
+      z-index:5;
+      left:40%;
+      top: 10px; 
+    }
+
+   #search{
+     background-color:white;
+     width: 34px;
+     height: 34px;
+     position:absolute;
+     left:60%; 
+     top:10px;
+    z-index:5; 
+  //  border-radius: 2px;
+     border:solid  1px grey; 
+   }
+    </style>
+
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>    
+    
+    <script src="javascript/c3.min.js"></script>    
+  
+
+    <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    
+       <div id="dashboard" style="display:none">
+         Latitude:<span id="latitude"></span><br>
+         Longitude:<span id="longitude"></span>
+         Frame:  <input  name="Frame" size="4" type="number" value="0" style="display:none;width:10%" id="frame">  <button class="btn btn-default" type="button" id="changeFrame" style="display:none">Jump</button><br>
+        Time: <span id="time" >0</span> <br>
+       </div>
+   
+    <div id="mcontainer">
+           
+      <input class="form-control"  type="text" name="Query" size="30"  id="query" placeholder="Input your query here">
+      <button id="search"><span class="glyphicon glyphicon-search">  </span>  </button>
+     <div id="floating-panel">
+  <div class="dropup">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="glyphicon glyphicon-off"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+    <li><a id="Toggle_NMQ" onclick="toggleHeatmap(this)"  href="#">Close NMQ</a></li>
+    <li><a id="Toggle_TRMM" onclick="toggleHeatmap(this)"   href="#">Close TRMM</a></li>
+  </ul>
+</div> 
+    <!-- <button onclick="toggleHeatmap()" style="opacity:1" class="btn btn-default"><span class="glyphicon glyphicon-off"></span></button>-->
+    <!--  <button onclick="changeGradient()">Change gradient</button>
+      <button onclick="changeRadius()">Change radius</button>-->
+      <button onclick="changeOpacity()" class="btn btn-default"><span class="glyphicon glyphicon-asterisk"></span></button>
+      <button onclick="play()" id="playpause" class="btn btn-default"><span class="glyphicon glyphicon-play"></span></button>
+      <!--<button onclick="pause()" class="btn btn-default"><span class="glyphicon glyphicon-pause"></span></button>-->
+      <button onclick="stop()" class="btn btn-default"><span class="glyphicon glyphicon-stop"></button>
+      <div id="timedisplay"></div>
+      <div id="pcontainer">
+      <div class="progress" id="progressbar" style="width:100%;height:34px">
+            <div id="progress-bar"  aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="height:34px;width:0%">
+               
+            </div>
+      </div>
+      <div id="progressbar_handle"></div>
+      </div>  
+    </div>
+    <div id="map">
+    </div>
+   </div>
+
+ 
+   <div id="tcontainer" >
+    <button id="download" class="btn btn-default"> <span class="glyphicon glyphicon-download-alt"></span>  </button>
+    <button id="histogram_button" class="btn btn-default"><span class="glyphicon glyphicon-stats"></span></button>
+    <div id="timeseries"></div>
+    
+    <div id="histogram"></div>
+   </div>
+
+   <div id="colormaps">
+      <div id="colormap1"></div>
+      <div class="colormap_legend">NMQ Precipitation </div>
+      <div id="colormap2"></div>
+      <div class="colormap_legend">TRMM Precipitation</div>
+   </div>
+ 
+        <script>
+      // This example requires the Visualization library. Include the libraries=visualization
+      // parameter when you first load the API. For example:
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
+     var map, heatmap,heatmapData,heatmapData_trmm,animation,heatmapDataOrigin,playing=false,origin=true;
+     var values;
+     var values_trmm;
+     var rectangling=false;
+    // var timeframe2=0;
+     var updated=true; 
+     var tmp=0;
+     var currentLng=0, currentLat=0;
+     var timeframe=0;
+     var marker={};
+     var times=[];
+     var session_open=false;
+     var data={};
+     var handle_clicked=false;
+    var data2={};
+     var wholeframe=1024;
+     var queryString=""; 
+     var histogram_displayed=false; 
+     var chunk_size=36000000000000000;
+     var chunk_map_MERRA2={};
+     var chunk_map_TRMM={};
+     var node_color={
+        "192.168.0.1":1,
+        "192.168.0.2":5,
+        "192.168.0.3":15,
+        "192.168.0.4":20,
+        "192.168.0.5":25,
+        "192.168.0.6":30,
+        "192.168.0.7":35,
+        "192.168.0.8":40,
+        "192.168.0.9":45, 
+        "192.168.0.10":50,
+        "192.168.0.11":55,
+        "192.168.0.12":60,
+        "192.168.0.13":65,
+        "192.168.0.14":70,
+        "192.168.0.15":75,
+        "192.168.0.16":80
+
+
+
+     };
+
+
+    var circles=[];
+  node_color={
+        "192.168.0.1":"#ffffff",
+        "192.168.0.2":"#ff0000",
+        "192.168.0.3":"#ff5900",
+        "192.168.0.4":"#ffb600",
+        "192.168.0.5":"#fff600",
+        "192.168.0.6":"#9dff00",
+        "192.168.0.7":"#00ff33",
+        "192.168.0.8":"#00ffed",
+        "192.168.0.9":"#00a5ff", 
+        "192.168.0.10":"#0043ff",
+        "192.168.0.11":"#7f00ff",
+        "192.168.0.12":"#ff00e9",
+        "192.168.0.13":"#ff008c",
+        "192.168.0.14":"#706c6c",
+        "192.168.0.15":"#cacaca",
+        "192.168.0.16":"#000000"
+
+
+
+     };
+
+
+    function bounded_histogram(data_array,num_bin,north,south,east,west,NMQ){
+ 
+         var bin=new Array(num_bin);
+        for(var i=0; i< num_bin;i++) bin[i]=0; 
+        var max=-Infinity;
+        var min=Infinity;
+        var bin_index=0;
+        for(var i=0;i<data_array.length;i++)
+          {
+            if(data_array[i].location.lat()<=north && data_array[i].location.lat()>=south && data_array[i].location.lng()<=east && data_array[i].location.lng()>=west) {
+              if(data_array[i].weight>max)  max=data_array[i].weight;
+              if(data_array[i].weight<min)  min=data_array[i].weight;
+             }
+          }
+         var span=max-min;
+         for(var i=0;i<data_array.length;i++){
+           if(data_array[i].location.lat()<=north && data_array[i].location.lat()>=south && data_array[i].location.lng()<=east && data_array[i].location.lng()>=west) {  
+            bin_index=Math.floor((data_array[i].weight-min)/span*num_bin);
+            if(bin_index==num_bin) bin_index--;
+            if(bin_index<num_bin && bin_index>=0){
+              bin[bin_index]++;
+              }
+              }
+         }
+         for(var i=1;i<num_bin;i++){
+           bin[i]=bin[i-1]+bin[i];
+           
+
+         }
+         if(NMQ)
+           bin.unshift("NMQ_histogram");
+        else
+          bin.unshift("TRMM_histogram");
+        return bin;
+        
+
+
+
+       } 
+
+     function histogram(data_array,num_bin){ 
+              return bounded_histogram(data_array,num_bin,90,-90,180,-180);
+          }
+     function translate_x(x){
+      return  x/7001*70-130;
+    
+     }
+     function translate_y(y){
+      return (1-y/3501)*35+20;
+     }
+     function translate_lng(lng){
+       return (lng+130)/70*7001;
+      }
+     function translate_lat(lat){
+       return (1-(lat-20)/35)*3501;
+      }
+    
+
+ 
+     function translate_lng_trmm(lng){
+       return (lng+180)*20;
+     }
+     function translate_lat_trmm(lat){
+       return (lat+40)*20;
+
+     }
+    function translate_x_trmm(x){
+      return x/20-40;
+     }
+
+    function translate_y_trmm(y){
+    
+     return y/20-180;
+    }
+
+
+ 
+     
+    function play(){
+           if(playing){
+             pause();
+             return;
+            }
+           
+           document.querySelector("#playpause span").className="glyphicon glyphicon-pause";
+           playing=true;
+ 
+           function animate(){
+               // queryData(timeframe,map.getZoom(),);
+               // heatmapData=[];
+               // heatmap.setData(heatamapData);
+            if(timeframe%(7)!=0) //query MERRA2 data
+               /* queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );*/
+               
+                queryData(timeframe,map.getZoom(),null,null,0,0,0,0,false,false,timeframe); 
+                
+            else{//query trmm data
+                  
+                var timeframe2=Math.floor(timeframe/743*110)+1;
+                 // if(timeframe2_current!=timeframe2){           
+                   //    timeseg=timeframe2_current;
+                     //  timeframe2=timeframe2_current;
+                 
+                queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeframe2); 
+                //    }
+               // ptimeframe2=timeframe2;
+                
+              
+
+               // timeframe2=Math.floor(timeframe%288/288*16)+1; 
+               // timeseg=Math.floor(timeframe/288)+1;
+                //  console.log("updated"+timeframe2);
+                }                 
+                                              
+                timeframe=timeframe+1;
+               //    heatmap.setData(heatmapData);
+              animation=setTimeout(animate,800);
+           document.querySelector("#progress-bar").style.width=timeframe/wholeframe*100+"%";
+         //   document.querySelector("#progress-bar").innerHTML=times[timeframe];//(timeframe/wholeframe*100).toFixed(2)+"%";
+           document.querySelector("#timedisplay").innerHTML=time_format(times[timeframe]);
+        var ratio=timeframe/wholeframe;
+           document.querySelector("#progressbar_handle").style.left=(ratio*100).toFixed(2)+"%";
+         }
+           
+           animation=setTimeout(animate, 0);
+      }
+      function pause(){
+          playing=false;
+          
+         document.querySelector("#playpause span").className="glyphicon glyphicon-play";
+         clearTimeout(animation);
+      }
+      function stop(){
+        pause();
+       // heatmap.setData(heatmapDataOrigin);
+       // heatmapData= jQuery.extend(true, [], heatmapDataOrigin);
+         timeframe=0;
+         //queryData(timeframe);
+           queryData(0,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                         ,0,0
+                   );
+         // document.getElementById('frame').value=timeframe;
+         // document.getElementById('time').innerHTML=times[timeframe];
+          document.querySelector("#progress-bar").style.width=timeframe/wholeframe*100+"%";
+         // document.querySelector("#progress-bar").innerHTML=times[timeframe];//(timeframe/wholeframe*100).toFixed(2)+"%";
+           
+                                                       
+           
+}
+
+
+     function queryData(t,zoomlevel,xp,yp,x0,y0,x1,y1,download,trmm,timeseg,first){
+           //if(session_open)  
+       //  if(tmp<=0) return;
+          
+          timeframe2=t;      
+        // Typical action to be performed when the document is ready:
+          // console.info("trmm"+trmm);
+                              
+          xhttp2 = new XMLHttpRequest();
+              //xhttp2.trmm=trmm;  
+          xhttp2.onreadystatechange = function() {
+          // console.info("insidexhttp2"+trmm);
+         if(this.readyState!=4 || this.status!=200) {
+                    // console.info("readyState="+this.status);
+                      if(this.status!=200 && this.readyState==4){
+                       // window.location = "map9.html";
+                        firstquery(true);
+                        queryString="";
+                       }
+                    }
+
+  
+         else {
+       // Typical action to be performed when the document is ready:
+                          
+               var xhttp3 = new XMLHttpRequest();
+               // xhttp3.trmm=trmm;
+               xhttp3.onreadystatechange=function() {
+                //var trmm=trmm;
+                 if(this.readyState!=4 || this.status!=200) {
+                     console.info("readyState="+this.status);
+                      if(this.status!=200 && this.readyState==4){
+                       //window.location = "map9.html";
+                         firstquery(true);
+                         queryString="";
+                        }
+                    }
+                  else {
+                   
+                 // console.info("insidexhttp3"+trmm); 
+                         values= xhttp3.responseText;
+
+
+                   if(first==1){
+                      values=values.split(/, |,| |\n/);
+                      for(var i=1;i<values.length/10-1;i++){
+                         var ip=values[10*i+4-1];
+                         ip=ip.substring(1,ip.length-1);
+                         var start_index=values[10*i+8-1];
+                         start_index=start_index.substring(2,start_index.length); 
+                         var time_frame=values[10*i+9-1];
+                         time_frame=time_frame.substring(0,time_frame.length-2);
+                         chunk_map_MERRA2[start_index+","+time_frame]=ip;
+                       }                      
+                      
+         
+                      queryData(0,map.getZoom(),null,null,7000,0,0,3500,0,0,0,2);
+  
+                    }  
+
+                  else if(first==2){
+                  
+                        values=values.split(/, |,| |\n/);
+                      for(var i=1;i<values.length/10-1;i++){
+                         var ip=values[10*i+4-1];
+                         ip=ip.substring(1,ip.length-1);
+                         var start_index=values[10*i+8-1];
+                         start_index=start_index.substring(2,start_index.length); 
+                         var time_frame=values[10*i+9-1];
+                         time_frame=time_frame.substring(0,time_frame.length-2);
+                         chunk_map_TRMM[start_index+","+time_frame]=ip;
+                       }                      
+                      
+         
+                      queryData(1,map.getZoom(),null,null,7000,0,0,3500,0,0);
+  
+
+
+                  }
+                  else if(trmm==true)//render the trmm data
+                  {
+                     values=values.split(/,| |\n/);
+                 
+                 //    console.info(values);
+                    // console.info("trmm");
+                    /* if(updated){
+                        heatmapData=[];
+                        updated=false;
+                     }
+                    else{
+                       updated=true;
+                     }
+                    */
+
+                                        heatmapData_trmm=[];
+
+                   // zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
+                  //  zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
+               
+                    zoomx=Math.max(zoomx,2);
+                    zoomy=Math.max(zoomy,2);
+               
+              
+                    zoomlat=zoomx/100;
+                    zoomlng=zoomy/100; 
+             
+                     for(var i=1;i<values.length/4-1;i++){
+                        var index=values[4*i];
+                        index=index.substring(1,index.length-1);
+                        var lat=parseInt(values[4*i+2]);
+                        var lng=parseInt(values[4*i+3]);
+                        var precip= parseFloat(values[4*i+1]);
+                       
+                      console.info(lat+","+lng);
+                        lat=translate_x_trmm(lat);
+                        lng=translate_y_trmm(lng);
+                           
+                
+                        index=parseInt(index/36000000000000000)*36000000000000000;
+                        
+                        var w=node_color[chunk_map_TRMM[index+","+t]];
+
+                       console.info(w);
+                         // console.info("lat="+lat);
+                        // console.info("lng="+lng);         
+                      if(lat.toFixed(2)*100%(zoomlat*100)==0 && lng.toFixed(2)*100%(zoomlng*100)==0)
+                          heatmapData_trmm.push({location:new google.maps.LatLng(lat,lng),weight:w});  
+                    } 
+                   // heatmap_trmm.setData(heatmapData_trmm);
+                    for(var point in heatmapData_trmm){
+                       //console.info(point);
+                       var cityCircle = new google.maps.Circle({
+                                  strokeColor: heatmapData_trmm[point].weight, 
+                                  strokeOpacity: 0.5,
+                                  strokeWeight: 10,
+                                  fillColor: heatmapData_trmm[point].weight,
+                                  fillOpacity: 0.5,
+                                  map: map,
+                                  center: {lat:heatmapData_trmm[point].location.lat(),lng: heatmapData_trmm[point].location.lng() },
+                                  radius: 100
+                               });   
+                      circles.push(cityCircle);
+                               
+
+                   }
+
+
+
+                   }
+
+                   else if(trmm==-2){//query and render trmm time series data
+                     values=values.split(/ |\n/);
+                           //console.info(values.length);
+                    var data={};
+                    data.columns=[];
+                    data.columns.push([]);
+                           //data.columns[0].push(values[1])
+                    data.columns[0].push("TRMM_Precipitation");
+                    for(var i=1;i<wholeframe/3;i++)
+                        data.columns[0][i]=0;
+                    for(var i=2;i<values.length-1;i=i+2){
+                        //data.columns[0].push(values[i+1][0]=="?"?0:parseFloat(values[i+1]));
+                       var index=parseInt(values[i].substring(1,values[i].length-1)/15*287/3);
+                        if(index<wholeframe/3)
+                           data.columns[0][index]=parseFloat(values[i+1]); 
+                               
+                      //  console.info("values.length="+values[i].substring(1,values[i].length-1));
+                     }
+                         
+                     //console.info(data.columns[0]); 
+                    
+                    chart.data.colors({
+                             TRMM_Precipitation: '#d8621e'
+                     }); 
+
+
+                     chart.load(  
+                                  data
+                            );
+                   
+                   }  
+                    else if(download){
+                     // var file_path = "http://jaguar.unl.edu:8080/read_lines?id="+tmp;
+                      var a = document.createElement('a');
+                     var file=new Blob([values],{type: 'application/octet-stream'});
+                  
+                    a.href = window.URL.createObjectURL(file); 
+                     a.download ="precipitation_at_"+currentLat.toFixed(6)+"_"+currentLng.toFixed(6);
+
+                    document.body.appendChild(a);
+                   a.click();
+                    document.body.removeChild(a);
+                   //should also close session..      
+                   
+                     }
+              
+
+                 else  if(xp==null){//render the whole MERRA2 data
+                                                   
+
+
+                      values=values.split(/,| |\n/);
+                 
+                 //    console.info(values);
+                    // console.info("trmm");
+                    /* if(updated){
+                        heatmapData=[];
+                        updated=false;
+                     }
+                    else{
+                       updated=true;
+                     }
+                    */
+
+                     for(var i=0;i<circles.length;i++){
+                       circles[i].setMap(null);
+                     }
+                    circles=[];
+
+                    heatmapData=[];
+                   // zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
+                  //  zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
+               
+                    zoomx=Math.max(zoomx,2);
+                    zoomy=Math.max(zoomy,2);
+               
+              
+                    zoomlat=zoomx/100;
+                    zoomlng=zoomy/100; 
+             
+                     for(var i=1;i<values.length/4-1;i++){
+                        var index=values[4*i]; 
+                        index=index.substring(1,index.length-1);
+                        //var lat=parseInt(values[4*i+2]);
+                        var lat=(parseFloat(values[4*i+2])-180)/2;
+                        var lng=(parseFloat(values[4*i+3])-288)/288*180;
+                        var precip=parseFloat(values[4*i+1]);        
+                
+                        index=parseInt(index/36000000000000000)*36000000000000000;
+                        
+                        var w=node_color[chunk_map_MERRA2[index+","+t]];
+                        console.info(chunk_map_MERRA2[index+","+t]);
+                      
+                        console.info(index+","+t);
+                      // console.info(w);
+                        // console.info(w);
+                        //  var precip= parseFloat(values[4*i+2]*3.93*10000);
+                        // console.info("lat="+lat);
+                        // console.info("lng="+lng);         
+                     // if(lat.toFixed(2)*100%(zoomlat*100)==0 && lng.toFixed(2)*100%(zoomlng*100)==0)
+                          heatmapData.push({location:new google.maps.LatLng(lat,lng),weight:w});  
+                    } 
+                    //heatmap.setData(heatmapData);
+                     // console.info(values);
+                         
+                         for(var point in heatmapData){
+                       //console.info(point);
+                     var cityCircle = new google.maps.Circle({
+                                  strokeColor: heatmapData[point].weight, 
+                                  strokeOpacity: 1,
+                                  strokeWeight: 10,
+                                  fillColor: heatmapData[point].weight,
+                                  fillOpacity: 1,
+                                  map: map,
+                                  center: {lat:heatmapData[point].location.lat(),lng: heatmapData[point].location.lng() },
+                                  radius: 100
+                               });   
+                        
+                              circles.push(cityCircle);
+
+                   }
+
+
+
+
+
+
+                            if(trmm==0){//when click the progress bar, we want to further get the trmm data. The query is added here to avoid server side query collision
+                              console.info("click while not playing");
+                              timeframe2=Math.floor(timeframe/743*110)+1;
+                               timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                                               
+                            queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeframe); 
+                             }
+                             
+
+                           //document.getElementById('frame').value=timeframe;
+                              
+                             // document.getElementById('time').innerHTML=times[timeframe];
+         
+                          
+                            document.querySelector("#timedisplay").innerHTML=time_format(times[timeframe]);
+
+                        }
+                         else{   // render time series chart
+                           values=values.split(/ |\n/);
+                           //console.info(values.length);
+                       var    data={};
+                           data.columns=[];
+                           data.columns.push([]);
+                           //data.columns[0].push(values[1])
+                          // data.columns[0].push("Precipitation at ("+currentLat.toFixed(2)+","+currentLng.toFixed(2)+")");
+                           data.columns[0].push("NMQ_Precipitation");
+                           for(var i=2;i<values.length-1;i=i+2){
+                              data.columns[0].push(values[i+1][0]=="?"?0:parseFloat(values[i+1]));
+                              
+                            }    
+
+                            chart.data.colors({
+                                NMQ_Precipitation: '#1e37d8'
+                             }); 
+
+       
+                       
+                           
+                         /*  data.onclick=function(d,element){
+                                 console.info(element);
+                                 timeframe=d[element];
+                                 queryData(element,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                                         ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                                         ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                                         ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                                  );
+    
+                                  document.getElementById('frame').value=timeframe;
+
+                              
+                                  document.getElementById('time').innerHTML=times[timeframe];
+         
+                           };*/
+                           chart.load(                            
+                                 data
+                            );
+                           //query and render time series data for TRMM 
+                
+
+
+                           queryData(0,map.getZoom(),Math.floor(translate_lng_trmm(currentLng)),Math.floor(translate_lat_trmm(currentLat)),0,0,0,0,0,-2); 
+                           console.info("lat:"+Math.floor(translate_lng_trmm(currentLng)));
+
+
+
+
+            
+                        }              
+                      
+                   } 
+ 
+               };
+  
+                         xhttp3.open("GET", "http://jaguar.unl.edu:8080/read_lines?id="+tmp, true);
+                         xhttp3.send();
+
+     }
+
+                   };
+              
+              // zoom=Math.floor(200/(zoomlevel+1));
+               //zoom=Math.max(Math.floor(Math.pow((x0-x1)/500,1.1)),1); 
+               zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
+               zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
+               console.info("zoomx"+zoomx);
+              zoomx=Math.max(zoomx,2);
+               zoomy=Math.max(zoomy,2);
+               
+              
+            //  zoomlat=zoomx/100;
+            //  zoomlng=zoomy/100; 
+              
+           //  console.info("zoomlat:"+zoomlat);
+           //  console.info("zoomlng:"+zoomlng);
+               //if(zoom<=4) zoom=4;
+               console.info("zoomx="+zoomx);
+         
+               console.info(x0);
+              console.info(x1);
+              console.info(y0);
+              console.info(y1);
+             console.info(xp);
+             console.info(yp);
+               // x0=7000;
+               // x1=0;
+              //  y0=3500;
+              // y1=0;
+                //console.info(x1);
+                             // queryString=encodeURIComponent(queryString);
+             // queryString= queryString.replace(/\+/g,"%2B");
+             
+            if(first==1){
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(MERRA2_JAN_HSTM_CHUNKMAP,attid=0)")+"&save=dcsv", true);
+             
+
+            }
+            else if(first==2){
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(TRMM_PRECIP_HSTM_CHUNKMAP,attid=0)")+"&save=dcsv", true);
+             
+
+            }
+
+            else if(trmm==true){
+              // timeseg=3;
+              // timeframe2=3;
+               console.info("timeframe2"+timeframe2);
+              console.info("timeseg"+timeseg);
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(slice(TRMM_PRECIP_HSTM,time,"+t+"), precip>=0 and x%10=0 and y%10=0 "+queryString+")")+"&save=dcsv", true);
+              }
+              else if(trmm==-2){
+             
+
+                
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(TRMM_PRECIP,x,"+yp+",y,"+xp+"),precip>0 and x%3=0 and y%3=0)&save=dcsv"), true);
+              }  
+              else if(xp==null){
+                 
+               // xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(NMQ"+t+",x%"+zoomx+"=0 and y%"+zoomy+"=0 and x<"+x0+" and   x>"+x1+" and y<"+y1+" and y>"+y0+" and precip>0 "+queryString+")")+"&save=dcsv", true);
+                 // xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(slice(NMQ_PRECIP,z,0,t,"+t+"),x%"+zoomx+"=0 and y%"+zoomy+"=0 and x<"+x0+" and   x>"+x1+" and y<"+y1+" and y>"+y0+" and precip>0 "+queryString+")")+"&save=dcsv", true);
+                
+                 xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(slice(MERRA2_JAN_HSTM,z,"+t+"), x%5=0 and y%5=0"+queryString+")")+"&save=dcsv", true);
+       
+              //  console.info("here");
+                }
+                else{
+                if(xp>7000) xp=7000;
+                if(yp>3500) yp=3500;
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,x,"+xp+",y,"+yp+"),t%3=0)&save=dcsv"), true);
+                 }
+                xhttp2.send();
+  
+
+     }
+    
+      function initMap() {
+          heatmapData=[];
+         heatmapData_trmm=[];
+
+         // heatmapDataOrigin = jQuery.extend(true, [], heatmapData);
+          map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 5,
+          center: {lat: 37.775, lng: -100.434},
+          mapTypeId: 'roadmap',
+          options:{minZoom:1, maxZoom: 15 }
+        });
+           
+          heatmap = new google.maps.visualization.HeatmapLayer({
+                         data: [],
+                         map: map,
+                        radius: 5,
+                       maxIntensity:100,
+                       dissipating:true
+                                            
+                       });
+            //queryData(0,map.getZoom(),null,null,);
+          heatmap_trmm = new google.maps.visualization.HeatmapLayer({
+                         data: [],
+                         map: map,
+                        radius: 8,
+                       maxIntensity:100,
+                        dissipating:true
+                                            
+                       });
+                         
+
+       changeGradient();
+          marker = new google.maps.Marker({
+             position: null, 
+             map: map
+           });
+         map.addListener('dragend',function(e){
+              if(playing ) return;
+                /*  queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );*/
+                  /*  if(histogram_displayed)
+                { 
+                  var bin=histogram(heatmapData,80); 
+                  
+                   data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                 //  document.querySelector("#histogram").style.display="block";
+                  // document.querySelector("#timeseries").style.display="none";      
+                  // histogram_displayed=true;
+                    }*/ 
+ 
+
+              
+
+           });  
+        map.addListener('click',function(e){
+               if(playing)
+                     return;
+  
+               marker.setPosition(e.latLng);
+                 preLat=currentLat;
+                 preLng=currentLng;
+                 currentLat=e.latLng.lat();
+                 currentLng=e.latLng.lng();
+                // chart.unload("NMQ_Precipitation");
+                if(!histogram_displayed)
+                 queryData(0,map.getZoom(),Math.floor(translate_lng(currentLng)),Math.floor(translate_lat(currentLat))); 
+                 //marker.setMap(map);
+                
+                else  if(rectangling==false){
+                 //   marker.setMap(null);  
+                    north=e.latLng.lat();
+                    west=e.latLng.lng();
+                    rectangling=true;
+                    rectangle.setMap(null); 
+                   
+                 //    rectangle.setBounds(new google.maps.LatLngBounds(new google.maps.LatLng(south,west),new google.maps.LatLng(north,east)));
+                 //  console.info(rectangling);                   
+                 }
+                else{
+                   rectangling=false; 
+               //    rectangle.setMap(null); 
+                //  console.info(rectangling);
+                }
+               
+         
+               //document.getElementById('latitude').innerHTML=currentLat.toFixed(6);
+                                                                
+              // document.getElementById('longitude').innerHTML=currentLng.toFixed(6);
+              
+                 });
+
+          
+
+          map.addListener('mousemove',function(e){
+               if(histogram_displayed && rectangling){
+                    rectangle.setMap(map);
+                    east=e.latLng.lng();
+                    south=e.latLng.lat();
+                   south=Math.min(north,south);
+                   east=Math.max(west,east);
+                  rectangle.setBounds(new google.maps.LatLngBounds(new google.maps.LatLng(south,west),new google.maps.LatLng(north,east)));
+                              
+               
+             }
+          }); 
+
+
+
+          rectangle = new google.maps.Rectangle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.2,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.2,
+                    map: map,
+                    clickable:true
+                  });             
+          rectangle.addListener('mousemove',function(e){
+               if(histogram_displayed && rectangling){
+                    east=e.latLng.lng();
+                    south=e.latLng.lat();
+                  rectangle.setBounds(new google.maps.LatLngBounds(new google.maps.LatLng(south,west),new google.maps.LatLng(north,east)));
+                              
+               
+             }
+          }); 
+
+
+         rectangle.addListener('click',function(e){
+               rectangling=false;
+             // rectangle.setMap(null);
+            //  bounded_histogram();
+               
+              var bin=bounded_histogram(heatmapData,80,north,south,east,west,true); 
+                  
+                 var  data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2);
+                   chart2.data.colors({
+                            NMQ_histogram: '#1e37d8'
+                     }); 
+
+
+             var bin_trmm=bounded_histogram(heatmapData_trmm,80,north,south,east,west); 
+                  
+                 var  data2_trmm={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2_trmm.columns=[];
+                   data2_trmm.columns.push(bin_trmm);
+                   chart2.load(data2_trmm); 
+                chart2.data.colors({
+                             TRMM_histogram: '#d8621e'
+                            
+                     });
+
+               
+                 
+          }); 
+
+          map.addListener('zoom_changed',function(){
+              // heatmapData=[];
+             //  heatmap.setData(heatmapData);
+               if(playing)
+                  return;
+                /* queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );*/
+              //heatmap.set('radius',Math.pow(map.getZoom()*map.getZoom()*16,0.4));
+              
+               
+               });
+
+
+             console.info(map.getBounds());
+               
+               
+               // queryData(1,map.getZoom(),null,null,7000,0,0,3500,false,true,1);
+               var xhttp = new XMLHttpRequest();
+               xhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                   times=this.responseText;
+                   times=times.split(/\n/);
+                }
+              };
+              xhttp.open("GET", "filenames.txt", true);
+              xhttp.send();
+
+
+              document.getElementById('changeFrame').onclick=function(){
+                 timeframe=parseInt(document.getElementById('frame').value);
+                 document.querySelector("#progress-bar").style.width=timeframe/wholeframe*100+"%";
+                 //document.querySelector("#progress-bar").innerHTML=(timeframe/wholeframe*100).toFixed(2)+"%";
+           
+
+                 console.info(timeframe)//;
+                 queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );
+                 
+                
+            //    document.getElementById('frame').innerHTML=timeframe;
+              
+              //  document.getElementById('time').innerHTML=times[timeframe];
+               
+                                                                
+              
+           
+                 
+              };
+            document.getElementById('frame').onkeyup=function(e){
+             if(e.keyCode==13) 
+                document.getElementById("changeFrame").click(); 
+              
+            
+           };
+
+            document.querySelector("#query").onkeyup=function(e){
+               if(e.keyCode==13) {
+                     
+                     queryString=document.querySelector("#query").value;
+                    if(queryString!="") queryString="and "+queryString; 
+                     
+                    if(playing) return;
+
+                    queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );
+                   
+                }
+            };
+
+
+           // document.querySelector("#pcontainer").
+            document.querySelector("#pcontainer").onclick=function(e){
+                
+                console.info("x="+e.pageX);
+                console.info("offset="+this.offsetLeft);
+                // console.info("y="+e.clientY); 
+               
+               ratio=(e.pageX-this.offsetLeft-this.offsetParent.offsetLeft)/(this.offsetWidth);
+               if(ratio<0) return;  
+                timeframe=parseInt(ratio*wholeframe);
+                console.info(ratio*100);
+                document.querySelector("#progress-bar").style.width=(ratio*100).toFixed(2)+"%";
+                document.querySelector("#progressbar_handle").style.left=(ratio*100).toFixed(2)+"%";
+             //   document.querySelector("#progress-bar").innerHTML=times[timeframe]; //(ratio*100).toFixed(2)+"%";
+                
+            document.querySelector("#timedisplay").innerHTML=time_format(times[timeframe]);
+               //if(timeframe%15!=0)
+               if(!playing) 
+                 queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                        ,0,0
+                   );
+              else{
+                    queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                        ,0,-1
+                   );
+               
+             }
+    
+               //else{
+                               
+               // timeframe2=Math.floor(timeframe%288/288*16)+1; 
+               // timeseg=Math.floor(timeframe/288)+1;
+                 //  timeframe2=Math.floor(timeframe/15);
+                 //  timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                
+               // queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeseg); 
+              //  console.log("updated"+timeframe2);
+                //}                 
+                
+
+                 
+                
+            //    document.getElementById('frame').innerHTML=timeframe;
+              
+                // document.getElementById('time').innerHTML=times[timeframe];
+                 console.info("timeframe changed");             
+
+
+                if(histogram_displayed)
+                { 
+                  var bin=histogram(heatmapData,80); 
+                  
+                   data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                 //  document.querySelector("#histogram").style.display="block";
+                  // document.querySelector("#timeseries").style.display="none";      
+                  // histogram_displayed=true;
+                    } 
+ 
+ 
+            }; 
+
+              document.querySelector("#histogram_button").onclick=function(){
+                   if(histogram_displayed){
+                     $("#download")[0].style.display="block";
+                     marker.setMap(map);
+                     rectangle.setMap(null);  
+                     window.dispatchEvent(new Event('resize'));
+                     document.querySelector("#histogram").style.display="none";
+                     document.querySelector("#timeseries").style.display="block";
+                     histogram_displayed=false;
+                   }
+                  else{ 
+                  $("#download")[0].style.display="none";
+                  marker.setMap(null);
+                 rectangle.setMap(map);
+                  var bin=histogram(heatmapData,100); 
+                  
+                   data2={};
+                  window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                   document.querySelector("#histogram").style.display="block";
+                   document.querySelector("#timeseries").style.display="none";      
+                   histogram_displayed=true;
+                    }
+
+                          }; 
+           document.querySelector("#progressbar_handle").onmousedown=function() {
+                    console.info("down");
+                    handle_clicked=true;
+                    document.querySelector("#pcontainer").onmousemove=function(e){
+                          ratio=(e.pageX-$("#pcontainer")[0].offsetLeft-$("#pcontainer")[0].offsetParent.offsetLeft)/($("#pcontainer")[0].offsetWidth);
+                         if(ratio<0 || ratio>1) return;  
+                         timeframe=parseInt(ratio*wholeframe);
+                
+                         document.querySelector("#progress-bar").style.width=(ratio*100).toFixed(2)+"%";
+                        document.querySelector("#progressbar_handle").style.left=(ratio*100).toFixed(2)+"%";
+                        document.querySelector("#timedisplay").innerHTML=time_format(times[timeframe]);
+                     
+ 
+                       }; 
+                  
+                  }
+        
+         document.querySelector("#progressbar_handle").onmouseup=stopdrag;
+           
+         function stopdrag() {
+                    console.info("up");
+                    handle_clicked=false;
+                   document.querySelector("#pcontainer").onmousemove=null;       
+               if(!playing) 
+                 queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                        ,0,0
+                   );
+              else{
+                    queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                        ,0,-1
+                   );
+               
+             }
+    
+               //else{
+                               
+               // timeframe2=Math.floor(timeframe%288/288*16)+1; 
+               // timeseg=Math.floor(timeframe/288)+1;
+                 //  timeframe2=Math.floor(timeframe/15);
+                 //  timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                
+               // queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeseg); 
+              //  console.log("updated"+timeframe2);
+                //}                 
+                
+
+                 
+                
+            //    document.getElementById('frame').innerHTML=timeframe;
+              
+                // document.getElementById('time').innerHTML=times[timeframe];
+                 console.info("timeframe changed");             
+
+
+                if(histogram_displayed)
+                { 
+                  var bin=histogram(heatmapData,80); 
+                  
+                   data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                 //  document.querySelector("#histogram").style.display="block";
+                  // document.querySelector("#timeseries").style.display="none";      
+                  // histogram_displayed=true;
+                    } 
+ 
+              
+                  }
+
+
+
+         
+               queryData(0,map.getZoom(),null,null,7000,0,0,3500,0,0,0,1);
+           //  chart.axis.max({x:1024}); 
+             }
+  
+      function toggleHeatmap(m) {
+       // console.info(m);
+        if(m==$("#Toggle_NMQ")[0]) {  
+           if(m.innerHTML=="Close NMQ"){
+              heatmap.setMap(null);
+              m.innerHTML="Open NMQ";
+              $("#colormap1")[0].style.display="none";
+              $(".colormap_legend")[0].style.display="none";
+            }
+           else{
+              heatmap.setMap(map);
+             m.innerHTML="Close NMQ";
+         
+              $("#colormap1")[0].style.display="block";
+             
+              $(".colormap_legend")[0].style.display="block";
+            }
+            }
+         
+  
+          // heatmap_trmm.setMap(heatmap_trmm.getMap() ? null : map);
+         
+        else{
+            if(m.innerHTML=="Close TRMM"){
+              m.innerHTML="Open TRMM";
+              heatmap_trmm.setMap(null);
+              
+              $("#colormap2")[0].style.display="none";
+              
+              $(".colormap_legend")[1].style.display="none";
+            }
+            
+             
+           else{
+              m.innerHTML="Close TRMM";
+              heatmap_trmm.setMap(map);
+          
+              $("#colormap2")[0].style.display="block";
+            
+            //  $("#colormap2")[0].style.top="10px";
+            
+              $(".colormap_legend")[1].style.display="block";
+        
+             }
+          }
+           
+          // heatmap.setMap(heatmap_trmm.getMap() ? null : map);
+         
+         
+      }
+      function changeGradient() {
+       var gradient = [
+          'rgba(255, 255, 255, 0)',
+          'rgba(255, 0, 0, 1)',
+          'rgba(249, 116, 0,1)',
+          'rgba(249, 183, 0, 1)',
+          'rgba(255, 255, 0, 1)',
+          'rgba(174, 255, 0, 1)',
+          'rgba(83, 249, 0, 1)', 
+          'rgba(0, 255, 0, 1)', 
+          'rgba(0, 249, 129, 1)',
+          'rgba(0, 249, 241, 1)',
+          'rgba(0, 116, 249, 1)',
+          'rgba(0, 29, 255, 1)',
+          'rgba(102, 0, 255, 1)',
+          'rgba(208, 0, 255, 1)',
+         'rgba(255, 0, 152, 1)',
+          'rgba(0, 0, 0, 1)',
+
+          ];/*
+         var gradient = [
+          'rgba(255, 55, 0, 0)',
+          'rgba(255, 157, 0,1)',
+          'rgba(255, 255, 0, 1)',
+          'rgba(150, 255, 0, 1)',
+          'rgba(0, 255, 135, 1)',
+          'rgba(0,255 , 246, 1)',
+          'rgba(0, 165, 255, 1)',
+          'rgba(0, 55, 255, 1)',
+          'rgba(106, 0, 255, 1)',
+          'rgba(255, 0, 255, 1)',
+          'rgba(255, 0, 38, 1)'
+                 ];
+        /* var gradient = [
+          'rgba(255, 0, 0, 0)',
+          'rgba(0, 255, 0,1)',
+          'rgba(0, 0, 255, 1)'
+       ]; */
+
+         
+        heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+        /*var gradient_trmm = [
+          'rgba(180, 255, 0, 1)',
+          'rgba(190, 220, 2,1)',
+          'rgba(200, 200, 2, 1)',
+          'rgba(210, 180, 2, 1)',
+          'rgba(220, 160, 0, 1)',
+          'rgba(230, 140, 0, 1)',
+          'rgba(240, 120, 0, 1)',
+          'rgba(250, 100, 0, 1)',
+          'rgba(255, 80, 0, 1)',
+          'rgba(255, 40, 0, 1)',
+          'rgba(255, 20, 0, 1)',
+          'rgba(255, 0, 0, 1)'
+        ]*/
+
+        var gradient_trmm=gradient;
+        heatmap_trmm.set('gradient', heatmap_trmm.get('gradient') ? null : gradient_trmm);
+      
+       }
+      function changeRadius() {
+        heatmap.set('radius', heatmap.get('radius') ? null : 30);
+      }
+      function changeOpacity() {
+        heatmap.set('opacity', heatmap.get('opacity') ? null : 0.3);
+  
+        heatmap_trmm.set('opacity', heatmap_trmm.get('opacity') ? null : 0.3);
+  
+       }
+      // Heatmap data: 500 Points
+      
+        
+      
+        function getPoints() {
+          return heatmapData;
+        }
+
+        var month_map=[
+          "JAN",
+          "FEB",
+          "MAR",
+          "APR",
+          "MAY",
+          "JUN",
+          "JUL",
+          "AUG",
+          "SEP",
+          "OCT",
+          "NOV",
+          "DEC"
+         ];
+        function time_format(time_string ){
+           var formatted_time="";
+           formatted_time+=month_map[time_string.substring(4,6)-1];
+           formatted_time+=" ";
+           formatted_time+=time_string.substring(6,8);
+           formatted_time+=", ";
+           formatted_time+=time_string.substring(0,4);
+           formatted_time+="<br>";
+           formatted_time+=time_string.substring(9,11);
+           formatted_time+=":";
+           formatted_time+=time_string.substring(11,13);
+           formatted_time+=":";
+           formatted_time+=time_string.substring(13);
+           return formatted_time;
+       }  
+       var chart=c3.generate({
+           bindto:'#timeseries',
+           size:{
+             height:215
+           },
+           axis:{
+             y:{
+              // max:20
+             } 
+           },
+          color:{
+            //pattern:["#0b53c6"]
+           },
+           legend:{
+              item:{
+                onclick:function(id){
+                      if(playing) return;
+                      var xp=Math.floor(translate_lng(currentLng));
+                      var yp= Math.floor(translate_lat(currentLat));
+                      //    queryData();  
+                             queryData(0,map.getZoom(),xp,yp,0,0,0,0,true);
+                      } 
+                 } 
+              }, 
+           
+           data:{
+              columns: [
+              //  ['data1',30,200,100,400,150,250],
+              //  ['data2',50,20,10,40,15,25]             
+ 
+              ]
+           }
+                
+       });
+
+ 
+       var chart2=c3.generate({
+           bindto:'#histogram',
+           size:{
+             height:215
+           },
+           axis:{
+             x:{
+               max:80
+             } 
+           },
+          color:{
+           // pattern:["#0b53c6"]
+           },
+           legend:{
+              item:{
+                onclick:function(id){
+                      if(playing) return;
+                      var xp=Math.floor(translate_lng(currentLng));
+                      var yp= Math.floor(translate_lat(currentLat));
+                      //    queryData();  
+                             queryData(0,map.getZoom(),xp,yp,0,0,0,0,true);
+                      } 
+                 } 
+              }, 
+           
+           data:{
+              types:{
+                 histogram: 'bar'
+               },
+              columns: [
+              //  ['data1',30,200,100,400,150,250],
+              //  ['data2',50,20,10,40,15,25]             
+ 
+              ]
+           }
+                
+       });
+
+     document.getElementById('download'). onclick=function(id){
+                     if(playing) return;
+                      var xp=Math.floor(translate_lng(currentLng));
+                      var yp= Math.floor(translate_lat(currentLat));
+                      //    queryData();  
+                             queryData(0,map.getZoom(),xp,yp,0,0,0,0,true);
+                      }; 
+    window.onresize=function(){
+    }; 
+    document.querySelector("#search").onclick=function() {
+      
+        queryString=document.querySelector("#query").value;
+        if(queryString!="") queryString="and "+queryString; 
+       if(playing) return;
+         queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );
+                   
+    };      
+
+    firstquery= function(notfirst){
+    var xhttp1 = new XMLHttpRequest();
+          xhttp1.onreadystatechange = function() {
+
+         if (this.readyState == 4 && this.status == 200) {
+                 tmp=xhttp1.responseText;
+                console.info("tmp="+tmp);
+               if(!notfirst)
+                  initMap();
+             }
+
+          };
+
+          xhttp1.open("GET", "http://jaguar.unl.edu:8080/new_session", true);
+          xhttp1.send();
+    }  
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU1RvtD5YF8-dwMmCIYP8ds-6Np5QVHFY&libraries=visualization&callback=firstquery">
+    </script>
+   
+  </body>
+</html>

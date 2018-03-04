@@ -23,7 +23,7 @@
         position: relative;
       }
       #mcontainer{
-       height:80%;
+       height:100%;
        position: relative;
        
       }
@@ -33,8 +33,8 @@
         //top:90%;
         //height:34px;
          bottom :10px;
-        left: 25%;
-        width:50%;
+        left: 5%;
+        width:90%;
         z-index: 5;
         //opacity:0.6;
        // background-color: #fff;
@@ -64,7 +64,7 @@
         z-index: 5;
       }
       #timeseries{
-        height:50%;
+        height:100%;
         //background-color: blue;
       }
       #dashboard{
@@ -80,46 +80,87 @@
        border: 2px solid grey;
       }
      #tcontainer{
-      position: relative;
+      position: absolute;
+      right:0px;
+      top:0px;
+      width: 20%;
+      height: 300px;
+      opacity:0.5;
+      background-color:white;
       padding: 2%;
      // height:20%;
       border: 3px solid grey;
- }
+      transition: opacity 1.5s;
+     }
+     #tcontainer:hover{
+       opacity:  1;
+
+     }
+ 
+     #tcontainer svg{
+     //  height: 100% !important;
+       
+     
+     }
+    #tcontainer g{
+     //   height: 100% !important;
+     }
      #download{
       position:absolute;
       z-index:5;
-      right: 20px;
+      right: 50px;
       top :20px;
-      width: 10%
+      width:15%;
       
      }
+     #histogram_button{
+      position:absolute;
+      z-index:5;
+      right: 50px;
+      top: 60px;
+      width:15%;
+     // display:none;
+
+      } 
+     #histogram{
+      display:none;
+      height:100%; 
+     }     
      #pcontainer{
        display:inline;
        float: left;
-       width:65%;
+       width:90%;
        height:34px;
       padding-left:20px;
      }
-     @media screen and (max-width: 1000px){
+     @media screen and (max-width: 1950px){
        #floating-panel{
-           width: 80%; 
-           left:10%;  
+           width: 86%; 
+           left:7%;  
        }
       #pcontainer{
-       width:60%;
+       width:80%;
        }
+       #tcontainer{
+            width: 35%;
+        }
+      #download{
+        width: 15%;
+     }      
+
      }
-     @media screen and (max-width: 800px){
+     @media screen and (max-width: 960px){
         #floating-panel{
            width: 84%;
            left:  8%;
+           
         } 
         #pcontainer{
-           width: 50%;  
-        }
-      
-
+           width: 60%;  
+       6}
+       
      }
+     
      #query{
        width: 20%;
       display:block;   
@@ -128,6 +169,18 @@
       left:40%;
       top: 10px; 
     }
+
+   #search{
+     background-color:white;
+     width: 34px;
+     height: 34px;
+     position:absolute;
+     left:60%; 
+     top:10px;
+    z-index:5; 
+  //  border-radius: 2px;
+     border:solid  1px grey; 
+   }
     </style>
 
       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
@@ -148,16 +201,17 @@
 
   <body>
     
-       <div id="dashboard">
+       <div id="dashboard" style="display:none">
          Latitude:<span id="latitude"></span><br>
-         Longitude:<span id="longitude"></span><br>
-         Frame: <input  name="Frame" size="4" type="number" value="0" style="width:10%" id="frame">  <button class="btn btn-default" type="button" id="changeFrame">Jump</button><br>
-         Time: <span id="time">0</span> <br>
+         Longitude:<span id="longitude"></span>
+         Frame:  <input  name="Frame" size="4" type="number" value="0" style="display:none;width:10%" id="frame">  <button class="btn btn-default" type="button" id="changeFrame" style="display:none">Jump</button><br>
+        Time: <span id="time" >0</span> <br>
        </div>
    
     <div id="mcontainer">
     
       <input class="form-control"  type="text" name="Query" size="30"  id="query" placeholder="Input your query here">
+      <button id="search"><span class="glyphicon glyphicon-search">  </span>  </button>
      <div id="floating-panel">
       <button onclick="toggleHeatmap()" style="opacity:1" class="btn btn-default"><span class="glyphicon glyphicon-off"></span></button>
     <!--  <button onclick="changeGradient()">Change gradient</button>
@@ -177,19 +231,25 @@
     <div id="map">
     </div>
    </div>
-   <div id="tcontainer" >
-    <button id="download" class="btn btn-default">Download </button>
-    <div id="timeseries">
 
-    </div>
-    </div>
-    <div id="demo"></div>
+ 
+   <div id="tcontainer" >
+    <button id="download" class="btn btn-default"> <span class="glyphicon glyphicon-download-alt"></span>  </button>
+    <button id="histogram_button" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span></button>
+    <div id="timeseries"></div>
+    
+    <div id="histogram"></div>
+   </div>
+ 
         <script>
       // This example requires the Visualization library. Include the libraries=visualization
       // parameter when you first load the API. For example:
       // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
-     var map, heatmap,heatmapData,animation,heatmapDataOrigin,playing=false,origin=true;
-     var values; 
+     var map, heatmap,heatmapData,heatmapData_trmm,animation,heatmapDataOrigin,playing=false,origin=true;
+     var values;
+     var values_trmm;
+    // var timeframe2=0;
+     var updated=true; 
      var tmp=0;
      var currentLng=0, currentLat=0;
      var timeframe=0;
@@ -197,8 +257,38 @@
      var times=[];
      var session_open=false;
      var data={};
+
+    var data2={};
      var wholeframe=1024;
-     
+     var queryString=""; 
+     var histogram_displayed=false;  
+
+     function histogram(data_array,num_bin){ 
+
+        var bin=new Array(num_bin);
+        for(var i=0; i< num_bin;i++) bin[i]=0; 
+        var max=-Infinity;
+        var min=Infinity;
+        var bin_index=0;
+        for(var i=0;i<data_array.length;i++)
+          { 
+              if(data_array[i].weight>max)  max=data_array[i].weight;
+              if(data_array[i].weight<min)  min=data_array[i].weight;
+          }
+         var span=max-min;
+         for(var i=0;i<data_array.length;i++){
+              
+            bin_index=Math.floor((data_array[i].weight-min)/span*num_bin);
+            if(bin_index==num_bin) bin_index--;
+            if(bin_index<num_bin && bin_index>=0){
+              bin[bin_index]++;
+             }
+         }
+        bin.unshift("histogram");
+        return bin;
+        
+
+     }
      function translate_x(x){
       return  x/7001*70-130;
     
@@ -221,26 +311,37 @@
            
            document.querySelector("#playpause span").className="glyphicon glyphicon-pause";
            playing=true;
+ 
            function animate(){
                // queryData(timeframe,map.getZoom(),);
                // heatmapData=[];
                // heatmap.setData(heatamapData);
-
+            if(timeframe%(19)!=0) 
                 queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
                         ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
                         ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
                         ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
 
                    );
-                               
+                
+            else{
+                  timeframe2=Math.floor(timeframe/287*15)+1;
+                             timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                
+                queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeseg); 
+              
+
+               // timeframe2=Math.floor(timeframe%288/288*16)+1; 
+               // timeseg=Math.floor(timeframe/288)+1;
+                //  console.log("updated"+timeframe2);
+                }                 
+                                              
                 timeframe=timeframe+1;
-                 console.log("updated");
-                             
-                                                                
                //    heatmap.setData(heatmapData);
-              animation=setTimeout(animate, 1000);
+              animation=setTimeout(animate,800);
             document.querySelector(".progress-bar").style.width=timeframe/wholeframe*100+"%";
-            document.querySelector(".progress-bar").innerHTML=(timeframe/wholeframe*100).toFixed(2)+"%";
+            document.querySelector(".progress-bar").innerHTML=times[timeframe];//(timeframe/wholeframe*100).toFixed(2)+"%";
             }
            
            animation=setTimeout(animate, 0);
@@ -266,7 +367,7 @@
           document.getElementById('frame').value=timeframe;
           document.getElementById('time').innerHTML=times[timeframe];
           document.querySelector(".progress-bar").style.width=timeframe/wholeframe*100+"%";
-          document.querySelector(".progress-bar").innerHTML=(timeframe/wholeframe*100).toFixed(2)+"%";
+          document.querySelector(".progress-bar").innerHTML=times[timeframe];//(timeframe/wholeframe*100).toFixed(2)+"%";
            
                                                        
                  
@@ -274,26 +375,85 @@
 }
 
 
-     function queryData(t,zoomlevel,xp,yp,x0,y0,x1,y1,download){
+     function queryData(t,zoomlevel,xp,yp,x0,y0,x1,y1,download,trmm,timeseg){
            //if(session_open)  
-        
-        
-       
-       // Typical action to be performed when the document is ready:
-           
+       //  if(tmp<=0) return;
+          
+          var timeframe2=t;      
+        // Typical action to be performed when the document is ready:
+           console.info("trmm"+trmm);
                               
               xhttp2 = new XMLHttpRequest();
-                
+              //xhttp2.trmm=trmm;  
           xhttp2.onreadystatechange = function() {
-         if (this.readyState == 4 && this.status == 200) {
+          // console.info("insidexhttp2"+trmm);
+         if(this.readyState!=4 || this.status!=200) {
+                    // console.info("readyState="+this.status);
+                      if(this.status!=200 && this.readyState==4){
+                       // window.location = "map9.html";
+                        firstquery(true);
+                        queryString="";
+                       }
+                    }
+
+  
+         else {
        // Typical action to be performed when the document is ready:
                           
                var xhttp3 = new XMLHttpRequest();
+               // xhttp3.trmm=trmm;
                xhttp3.onreadystatechange=function() {
-                  if(this.readyState == 4 && this.status == 200) {
+                //var trmm=trmm;
+                 if(this.readyState!=4 || this.status!=200) {
+                     console.info("readyState="+this.status);
+                      if(this.status!=200 && this.readyState==4){
+                       //window.location = "map9.html";
+                         firstquery(true);
+                         queryString="";
+                        }
+                    }
+                  else {
+                   
+                 // console.info("insidexhttp3"+trmm); 
                          values= xhttp3.responseText;
-                     
-                    if(download){
+                   if(trmm==true){
+                     values=values.split(/,| |\n/);
+                 
+                 //    console.info(values);
+                    // console.info("trmm");
+                    /* if(updated){
+                        heatmapData=[];
+                        updated=false;
+                     }
+                    else{
+                       updated=true;
+                     }
+                    */
+                    heatmapData_trmm=[];
+                   // zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
+                  //  zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
+               
+                    zoomx=Math.max(zoomx,2);
+                    zoomy=Math.max(zoomy,2);
+               
+              
+                    zoomlat=zoomx/100;
+                    zoomlng=zoomy/100; 
+             
+                     for(var i=1;i<values.length/5-1;i++){
+                        var lat=parseFloat(values[5*i+2]);
+                        var lng=parseFloat(values[5*i+3]);
+                        var precip= parseFloat(values[5*i+4]);
+                        // console.info("lat="+lat);
+                        // console.info("lng="+lng);         
+                      if(lat.toFixed(2)*100%(zoomlat*100)==0 && lng.toFixed(2)*100%(zoomlng*100)==0)
+                          heatmapData_trmm.push({location:new google.maps.LatLng(lat,lng),weight:precip});  
+                    } 
+                    heatmap_trmm.setData(heatmapData_trmm);
+                     // console.info(values);
+
+                    } 
+                    else if(download){
                      // var file_path = "http://jaguar.unl.edu:8080/read_lines?id="+tmp;
                       var a = document.createElement('a');
                      var file=new Blob([values],{type: 'application/octet-stream'});
@@ -309,11 +469,22 @@
                      }
               
 
-                     else  if(xp==null){//render the whole map
+                 else  if(xp==null){//render the whole map
                        values=values.split(/,| |\n/); 
-                       //  document.getElementById("demo").innerHTML += values;
-                         
-                         heatmapData=[];
+                             
+                //     console.info(values);
+
+                    //   values=values.split(/,| |\n/);
+                                    //   console.info(heatmapData);
+                      //  document.getElementById("demo").innerHTML += values;
+                        /* if(updated){
+                           heatmapData=[];
+                           updated=false;
+                         }
+                         else{
+                             updated=true;
+                         }*/
+                         heatmapData=[] ;
                          for(var i=1;i<values.length/3-1;i++){
                            var y= parseFloat(values[3*i].substring(1));
                            var x= parseFloat(values[3*i+1].substring(0,values[3*i+1].length-1));
@@ -322,29 +493,40 @@
                               {
                                  
                                  
-                          heatmapData.push({location:new google.maps.LatLng(translate_y(y),translate_x(x)),weight:parseFloat(value)});//*100/zoomlevel/zoomlevel});  
+                           heatmapData.push({location:new google.maps.LatLng(translate_y(y),translate_x(x)),weight:parseFloat(value)});//*100/zoomlevel/zoomlevel});  
                             
                                } 
                          
                           }
                         
                              heatmap.setData(heatmapData);
-                             document.getElementById('frame').value=timeframe;
+                             if(trmm==0){//when click the progress bar, we want to further get the trmm data. The query is added here to avoid server side query collision
+                              console.info("click while not playing");
+                             timeframe2=Math.floor(timeframe/287*15)+1;
+                             timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                                               
+                            queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeseg); 
+                             }
+                             
+
+                           document.getElementById('frame').value=timeframe;
                               
                               document.getElementById('time').innerHTML=times[timeframe];
          
                         }
                          else{   // render time series chart
                            values=values.split(/ |\n/);
-                           console.info(values.length);
+                           //console.info(values.length);
                            data={};
                            data.columns=[];
                            data.columns.push([]);
                            //data.columns[0].push(values[1])
-                           data.columns[0].push("Precipitation at Lat:"+currentLat.toFixed(2)+" Lng: "+currentLng);
+                           data.columns[0].push("Precipitation at ("+currentLat.toFixed(2)+","+currentLng.toFixed(2)+")");
+                           
                            for(var i=2;i<values.length-1;i=i+2){
                               data.columns[0].push(values[i+1][0]=="?"?0:parseFloat(values[i+1]));
-                      
+                              
                             }    
 
 
@@ -365,11 +547,9 @@
                               
                                   document.getElementById('time').innerHTML=times[timeframe];
          
-                           }; 
-                           chart.load(
-                             
+                           };
+                           chart.load(                            
                                  data
-                               
                             ); 
                         }              
                       
@@ -382,19 +562,22 @@
 
      }
 
-
-                   
-                    
-         
-
                    };
               
               // zoom=Math.floor(200/(zoomlevel+1));
                //zoom=Math.max(Math.floor(Math.pow((x0-x1)/500,1.1)),1); 
                zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
                zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
-               zoomx=Math.max(zoomx,1);
-               zoomy=Math.max(zoomy,1);
+               console.info("zoomx"+zoomx);
+            //   zoomx=Math.max(zoomx,2);
+             //  zoomy=Math.max(zoomy,2);
+               
+              
+            //  zoomlat=zoomx/100;
+            //  zoomlng=zoomy/100; 
+              
+           //  console.info("zoomlat:"+zoomlat);
+           //  console.info("zoomlng:"+zoomlng);
                //if(zoom<=4) zoom=4;
                console.info("zoomx="+zoomx);
          
@@ -409,18 +592,25 @@
               //  y0=3500;
               // y1=0;
                 //console.info(x1);
-                queryString=document.querySelector("#query").value;
-               if(queryString!="") queryString="and "+queryString; 
-              // queryString=encodeURIComponent(queryString);
+                             // queryString=encodeURIComponent(queryString);
              // queryString= queryString.replace(/\+/g,"%2B");
-               if(xp==null){
+              if (trmm==true){
+              // timeseg=3;
+              // timeframe2=3;
+               console.info("timeframe2"+timeframe2);
+              console.info("timeseg"+timeseg);
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(TRMM"+timeseg+",precip>0 and t="+timeframe2+" "+queryString+")")+"&save=dcsv", true);
+               }
+              else if(xp==null){
+                  
                 xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+"&query="+encodeURIComponent("filter(NMQ"+t+",x%"+zoomx+"=0 and y%"+zoomy+"=0 and x<"+x0+" and   x>"+x1+" and y<"+y1+" and y>"+y0+" and precip>0 "+queryString+")")+"&save=dcsv", true);
-                 console.info("here")
+                 
+                
+              //  console.info("here");
                 }
-            //    xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,t,"+t+"),x%"+zoom+"=0 and y%"+zoom+"=0 and x<"+x0+ ")&save=dcsv"), true); 
                 else
                 
-                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=slice(NMQ_PRECIP,z,0,x,"+xp+",y,"+yp+")&save=dcsv"), true);
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,x,"+xp+",y,"+yp+"),t%3=0)&save=dcsv"), true);
 
                 xhttp2.send();
   
@@ -429,13 +619,14 @@
     
       function initMap() {
           heatmapData=[];
+         heatmapData_trmm=[];
 
-          heatmapDataOrigin = jQuery.extend(true, [], heatmapData);
+         // heatmapDataOrigin = jQuery.extend(true, [], heatmapData);
           map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
+          zoom: 5,
           center: {lat: 37.775, lng: -100.434},
           mapTypeId: 'satellite',
-          options:{minZoom:5, maxZoom: 15 }
+          options:{minZoom:1, maxZoom: 15 }
         });
            
           heatmap = new google.maps.visualization.HeatmapLayer({
@@ -447,7 +638,15 @@
                                             
                        });
             //queryData(0,map.getZoom(),null,null,);
-              
+          heatmap_trmm = new google.maps.visualization.HeatmapLayer({
+                         data: [],
+                         map: map,
+                        radius: 8,
+                       maxIntensity:50,
+                        dissipating:true
+                                            
+                       });
+                         
 
        changeGradient();
           marker = new google.maps.Marker({
@@ -462,6 +661,21 @@
                         ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
 
                    );
+                    if(histogram_displayed)
+                { 
+                  var bin=histogram(heatmapData,80); 
+                  
+                   data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                 //  document.querySelector("#histogram").style.display="block";
+                  // document.querySelector("#timeseries").style.display="none";      
+                  // histogram_displayed=true;
+                    } 
+ 
+
               
 
            });  
@@ -470,11 +684,14 @@
                      return;
   
                marker.setPosition(e.latLng);
+                 preLat=currentLat;
+                 preLng=currentLng;
                  currentLat=e.latLng.lat();
                  currentLng=e.latLng.lng();
+                              chart.unload("Precipitation at ("+preLat.toFixed(2)+","+preLng.toFixed(2)+")");
                  queryData(0,map.getZoom(),Math.floor(translate_lng(currentLng)),Math.floor(translate_lat(currentLat))); 
                  //marker.setMap(map);
-
+                           
                document.getElementById('latitude').innerHTML=currentLat.toFixed(6);
                                                                 
                document.getElementById('longitude').innerHTML=currentLng.toFixed(6);
@@ -498,7 +715,9 @@
 
 
                console.info(map.getBounds());
-               queryData(0,map.getZoom(),null,null,7000,0,0,3500);
+               
+               
+               // queryData(1,map.getZoom(),null,null,7000,0,0,3500,false,true,1);
                var xhttp = new XMLHttpRequest();
                xhttp.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) {
@@ -543,6 +762,12 @@
 
             document.querySelector("#query").onkeyup=function(e){
                if(e.keyCode==13) {
+                     
+                     queryString=document.querySelector("#query").value;
+                    if(queryString!="") queryString="and "+queryString; 
+                     
+                    if(playing) return;
+
                     queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
                         ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
                         ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
@@ -563,24 +788,88 @@
                 timeframe=parseInt(ratio*wholeframe);
                 console.info(ratio*100);
                 document.querySelector(".progress-bar").style.width=(ratio*100).toFixed(2)+"%";
-                document.querySelector(".progress-bar").innerHTML=(ratio*100).toFixed(2)+"%";
+                document.querySelector(".progress-bar").innerHTML=times[timeframe]; //(ratio*100).toFixed(2)+"%";
                 
-                queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+               //if(timeframe%15!=0)
+               if(!playing) 
+                 queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
                         ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
                         ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
                         ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
-
+                        ,0,0
                    );
+              else{
+                    queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+                        ,0,-1
+                   );
+               
+           }
+               //else{
+                               
+               // timeframe2=Math.floor(timeframe%288/288*16)+1; 
+               // timeseg=Math.floor(timeframe/288)+1;
+                 //  timeframe2=Math.floor(timeframe/15);
+                 //  timeseg=timeframe2;
+               // ptimeframe2=timeframe2;
+                
+               // queryData(timeframe2,map.getZoom(),null,null,0,0,0,0,false,true,timeseg); 
+              //  console.log("updated"+timeframe2);
+                //}                 
+                
+
                  
                 
             //    document.getElementById('frame').innerHTML=timeframe;
               
                 document.getElementById('time').innerHTML=times[timeframe];
-                 console.info("timeframe changed");              
+                 console.info("timeframe changed");             
+
+
+                if(histogram_displayed)
+                { 
+                  var bin=histogram(heatmapData,80); 
+                  
+                   data2={};
+                 // window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                 //  document.querySelector("#histogram").style.display="block";
+                  // document.querySelector("#timeseries").style.display="none";      
+                  // histogram_displayed=true;
+                    } 
  
-            };  
+ 
+            }; 
+
+              document.querySelector("#histogram_button").onclick=function(){
+                   if(histogram_displayed){
+                    
+                     window.dispatchEvent(new Event('resize'));
+                     document.querySelector("#histogram").style.display="none";
+                     document.querySelector("#timeseries").style.display="block";
+                     histogram_displayed=false;
+                   }
+                  else{ 
+                  var bin=histogram(heatmapData,100); 
+                  
+                   data2={};
+                  window.dispatchEvent(new Event('resize'));
+                   data2.columns=[];
+                   data2.columns.push(bin);
+                   chart2.load(data2); 
+                   document.querySelector("#histogram").style.display="block";
+                   document.querySelector("#timeseries").style.display="none";      
+                   histogram_displayed=true;
+                    } 
+
+             }; 
           
          
+               queryData(0,map.getZoom(),null,null,7000,0,0,3500,0,0);
            //  chart.axis.max({x:1024}); 
              }
       function toggleHeatmap() {
@@ -619,6 +908,17 @@
 
        var chart=c3.generate({
            bindto:'#timeseries',
+           size:{
+             height:215
+           },
+           axis:{
+             y:{
+              // max:20
+             } 
+           },
+          color:{
+            pattern:["#0b53c6"]
+           },
            legend:{
               item:{
                 onclick:function(id){
@@ -640,6 +940,46 @@
            }
                 
        });
+
+ 
+       var chart2=c3.generate({
+           bindto:'#histogram',
+           size:{
+             height:215
+           },
+           axis:{
+             y:{
+              // max:20
+             } 
+           },
+          color:{
+           // pattern:["#0b53c6"]
+           },
+           legend:{
+              item:{
+                onclick:function(id){
+                      if(playing) return;
+                      var xp=Math.floor(translate_lng(currentLng));
+                      var yp= Math.floor(translate_lat(currentLat));
+                      //    queryData();  
+                             queryData(0,map.getZoom(),xp,yp,0,0,0,0,true);
+                      } 
+                 } 
+              }, 
+           
+           data:{
+              types:{
+                 histogram: 'bar'
+               },
+              columns: [
+              //  ['data1',30,200,100,400,150,250],
+              //  ['data2',50,20,10,40,15,25]             
+ 
+              ]
+           }
+                
+       });
+
      document.getElementById('download'). onclick=function(id){
                      if(playing) return;
                       var xp=Math.floor(translate_lng(currentLng));
@@ -647,24 +987,41 @@
                       //    queryData();  
                              queryData(0,map.getZoom(),xp,yp,0,0,0,0,true);
                       }; 
-                  
+    window.onresize=function(){
+    }; 
+    document.querySelector("#search").onclick=function() {
+      
+        queryString=document.querySelector("#query").value;
+        if(queryString!="") queryString="and "+queryString; 
+       if(playing) return;
+         queryData(timeframe,map.getZoom(),null,null,Math.floor(translate_lng(map.getBounds().getNorthEast().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getNorthEast().lat()))
+                        ,Math.floor(translate_lng(map.getBounds().getSouthWest().lng()))
+                        ,Math.floor(translate_lat(map.getBounds().getSouthWest().lat()))
+
+                   );
+                   
+    };      
+
+    firstquery= function(notfirst){
     var xhttp1 = new XMLHttpRequest();
           xhttp1.onreadystatechange = function() {
 
          if (this.readyState == 4 && this.status == 200) {
                  tmp=xhttp1.responseText;
                 console.info("tmp="+tmp);
-      //          initMap();
+               if(!notfirst)
+                  initMap();
              }
 
           };
 
           xhttp1.open("GET", "http://jaguar.unl.edu:8080/new_session", true);
           xhttp1.send();
-
+    }  
     </script>
     <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU1RvtD5YF8-dwMmCIYP8ds-6Np5QVHFY&libraries=visualization&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU1RvtD5YF8-dwMmCIYP8ds-6Np5QVHFY&libraries=visualization&callback=firstquery">
     </script>
    
   </body>

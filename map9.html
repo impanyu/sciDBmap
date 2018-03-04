@@ -279,7 +279,7 @@
                              
                                                                 
                //    heatmap.setData(heatmapData);
-              animation=setTimeout(animate, 1000);
+              animation=setTimeout(animate,800);
             document.querySelector(".progress-bar").style.width=timeframe/wholeframe*100+"%";
             document.querySelector(".progress-bar").innerHTML=times[timeframe];//(timeframe/wholeframe*100).toFixed(2)+"%";
             }
@@ -400,7 +400,8 @@
                            data.columns=[];
                            data.columns.push([]);
                            //data.columns[0].push(values[1])
-                           data.columns[0].push("Precipitation(Click here to download the time series data)");
+                           data.columns[0].push("Precipitation at ("+currentLat.toFixed(2)+","+currentLng.toFixed(2)+")");
+                           
                            for(var i=2;i<values.length-1;i=i+2){
                               data.columns[0].push(values[i+1][0]=="?"?0:parseFloat(values[i+1]));
                       
@@ -424,11 +425,9 @@
                               
                                   document.getElementById('time').innerHTML=times[timeframe];
          
-                           }; 
-                           chart.load(
-                             
+                           };
+                           chart.load(                            
                                  data
-                               
                             ); 
                         }              
                       
@@ -441,19 +440,14 @@
 
      }
 
-
-                   
-                    
-         
-
                    };
               
               // zoom=Math.floor(200/(zoomlevel+1));
                //zoom=Math.max(Math.floor(Math.pow((x0-x1)/500,1.1)),1); 
                zoomx=Math.floor((x0-x1)/(document.getElementById("map").offsetWidth/heatmap.radius*2));
                zoomy=Math.floor((y1-y0)/(document.getElementById("map").offsetHeight/heatmap.radius*2));
-               zoomx=Math.max(zoomx,1);
-               zoomy=Math.max(zoomy,1);
+               zoomx=Math.max(zoomx,2);
+               zoomy=Math.max(zoomy,2);
                //if(zoom<=4) zoom=4;
                console.info("zoomx="+zoomx);
          
@@ -477,7 +471,7 @@
             //    xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,t,"+t+"),x%"+zoom+"=0 and y%"+zoom+"=0 and x<"+x0+ ")&save=dcsv"), true); 
                 else
                 
-                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,x,"+xp+",y,"+yp+"),t%5=0)&save=dcsv"), true);
+                xhttp2.open("GET", "http://jaguar.unl.edu:8080/execute_query?id="+tmp+encodeURI("&query=filter(slice(NMQ_PRECIP,z,0,x,"+xp+",y,"+yp+"),t%3=0)&save=dcsv"), true);
 
                 xhttp2.send();
   
@@ -527,11 +521,14 @@
                      return;
   
                marker.setPosition(e.latLng);
+                 preLat=currentLat;
+                 preLng=currentLng;
                  currentLat=e.latLng.lat();
                  currentLng=e.latLng.lng();
+                              chart.unload("Precipitation at ("+preLat.toFixed(2)+","+preLng.toFixed(2)+")");
                  queryData(0,map.getZoom(),Math.floor(translate_lng(currentLng)),Math.floor(translate_lat(currentLat))); 
                  //marker.setMap(map);
-
+                           
                document.getElementById('latitude').innerHTML=currentLat.toFixed(6);
                                                                 
                document.getElementById('longitude').innerHTML=currentLng.toFixed(6);
@@ -684,6 +681,14 @@
            bindto:'#timeseries',
            size:{
              height:215
+           },
+           axis:{
+             y:{
+              // max:20
+             } 
+           },
+          color:{
+            pattern:["#0b53c6"]
            },
            legend:{
               item:{
