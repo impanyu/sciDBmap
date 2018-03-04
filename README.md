@@ -1,1 +1,1 @@
-#sciDBmap
+EarthCube Front End
